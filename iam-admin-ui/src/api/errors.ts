@@ -36,6 +36,9 @@ export function parseApiError(status: number, body: unknown): ApiError {
 }
 
 export function userMessage(error: ApiError): string {
+  if (error.code === "IAM-4020") {
+    return "用户名或密码错误";
+  }
   if (error.status === 401) {
     return "未登录或会话已失效";
   }

@@ -2,10 +2,19 @@
   <div class="login">
     <el-card class="card">
       <h2>IAM Admin</h2>
-      <p>开发环境先建立 SSO Session（无密码），再走 BFF Authorization Code + PKCE。浏览器不保存 Access Token。</p>
+      <p>输入用户名和密码建立 SSO Session，再走 BFF Authorization Code + PKCE。浏览器不保存 Access Token。</p>
       <el-form @submit.prevent="startLogin">
         <el-form-item label="用户名">
           <el-input v-model="username" autocomplete="username" data-testid="username" />
+        </el-form-item>
+        <el-form-item label="密码">
+          <el-input
+            v-model="password"
+            type="password"
+            autocomplete="current-password"
+            show-password
+            data-testid="password"
+          />
         </el-form-item>
         <el-form-item label="租户">
           <el-input v-model="tenantId" data-testid="tenant-id" />
@@ -23,6 +32,7 @@ import { http } from "../api/http";
 import { ApiError, userMessage } from "../api/errors";
 
 const username = ref("");
+const password = ref("");
 const tenantId = ref("");
 const loading = ref(false);
 const error = ref("");
@@ -31,14 +41,15 @@ async function startLogin() {
   error.value = "";
   const name = username.value.trim();
   const tenant = tenantId.value.trim();
-  if (!name || !tenant) {
-    error.value = "请填写用户名和租户。该用户必须已存在，且已绑定 Admin 角色。";
+  if (!name || !password.value || !tenant) {
+    error.value = "请填写用户名、密码和租户。该用户必须已存在，且已绑定 Admin 角色。";
     return;
   }
   loading.value = true;
   try {
     await http.post("/sso/login", {
       username: name,
+      password: password.value,
       tenant_id: tenant,
       client_id: "iam-admin"
     });
