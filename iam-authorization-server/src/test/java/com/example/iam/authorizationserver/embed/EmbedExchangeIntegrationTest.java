@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.iam.authorizationserver.AbstractIamIntegrationTest;
 import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.domain.RegistryStatus;
 import com.example.iam.clientregistry.dto.CreateClientRequest;
 import com.example.iam.clientregistry.dto.RedirectUriInput;
@@ -95,7 +96,8 @@ public class EmbedExchangeIntegrationTest extends AbstractIamIntegrationTest {
                         List.of(new RedirectUriInput("https://systemn.example.com/cb", "LOGIN_CALLBACK")),
                         SECRET))
                 .id();
-        userService.create(new CreateUserRequest(username, "User", username + "@example.com", "tenant-1", "org-1", "ACTIVE"));
+        userService.create(new CreateUserRequest(
+                username, "User", username + "@example.com", "tenant-1", "org-1", "ACTIVE", SsoTestPassword.RAW));
         policyRepository.save(IamEmbedPolicyEntity.builder()
                 .parentClientId(parentId)
                 .childClientId(childId)
@@ -184,8 +186,8 @@ public class EmbedExchangeIntegrationTest extends AbstractIamIntegrationTest {
         MvcResult result = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"tenant-1","client_id":"%s"}
-                                """.formatted(username, parentClientId)))
+                                {"username":"%s","password":"%s","tenant_id":"tenant-1","client_id":"%s"}
+                                """.formatted(username, SsoTestPassword.RAW, parentClientId)))
                 .andExpect(status().isOk())
                 .andReturn();
         csrf = result.getResponse().getCookie(com.example.iam.common.security.CsrfTokenService.COOKIE);

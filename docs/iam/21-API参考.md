@@ -11,7 +11,7 @@
 | POST | `/oauth2/token` | Token Exchange | 同上 | grant_type=urn:ietf:params:oauth:grant-type:token-exchange 或 token-exchange；subject_token 等 | TokenResponse |
 | POST | `/oauth2/introspect` | 内省 | confidential client | form token | `{active, sub, aud, client_id, scope, token_type, exp, iat, jti}` |
 | POST | `/oauth2/revoke` | 吊销 | client | form token, token_type_hint | 204 |
-| POST | `/sso/login` | SSO | 无密码 | JSON username, tenant_id, client_id | SsoSessionResponse + Set-Cookie |
+| POST | `/sso/login` | SSO | username + password + tenant_id + client_id | JSON | SsoSessionResponse + Set-Cookie |
 | GET | `/sso/session` | 当前 SSO | Cookie | — | SsoSessionResponse |
 | GET/POST | `/oidc/logout` | 登出 | Cookie；POST 需 CSRF | query logout_type | 204 |
 | POST | `/oidc/backchannel-logout` | RP 收 logout_token | logout_token | form | 204 |

@@ -17,6 +17,7 @@ import com.example.iam.audit.repository.IamAuditLogRepository;
 import com.example.iam.authorizationserver.AbstractIamIntegrationTest;
 import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.domain.RegistryStatus;
 import com.example.iam.clientregistry.dto.CreatePermissionRequest;
 import com.example.iam.clientregistry.dto.CreateResourceRequest;
@@ -343,12 +344,12 @@ class AdminClientManagementIntegrationTest extends AbstractIamIntegrationTest {
 
     private Cookie sso(String clientId) throws Exception {
         UserResponse user = userService.create(new CreateUserRequest(
-                "u" + clientId, "U", "u" + clientId + "@example.com", "admin-cli", null, "ACTIVE"));
+                "u" + clientId, "U", "u" + clientId + "@example.com", "admin-cli", null, "ACTIVE", SsoTestPassword.RAW));
         MvcResult result = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"admin-cli","client_id":"%s"}
-                                """.formatted(user.username(), clientId)))
+                                {"username":"%s","password":"%s","tenant_id":"admin-cli","client_id":"%s"}
+                                """.formatted(user.username(), SsoTestPassword.RAW, clientId)))
                 .andExpect(status().isOk())
                 .andReturn();
         return result.getResponse().getCookie(SsoCookieService.COOKIE_NAME);

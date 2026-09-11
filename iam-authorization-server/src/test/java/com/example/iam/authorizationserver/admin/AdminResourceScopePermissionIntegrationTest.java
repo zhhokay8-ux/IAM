@@ -16,6 +16,7 @@ import com.example.iam.audit.repository.IamAuditLogRepository;
 import com.example.iam.authorizationserver.AbstractIamIntegrationTest;
 import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.domain.RegistryStatus;
 import com.example.iam.clientregistry.dto.CreateClientRequest;
 import com.example.iam.clientregistry.dto.RedirectUriInput;
@@ -124,7 +125,7 @@ class AdminResourceScopePermissionIntegrationTest extends AbstractIamIntegration
                 List.of(new RedirectUriInput(LOGIN, "LOGIN_CALLBACK")),
                 SECRET));
         endUser = userService.create(new CreateUserRequest(
-                "u" + suffix, "U", "u" + suffix + "@example.com", "admin-cli", null, "ACTIVE"));
+                "u" + suffix, "U", "u" + suffix + "@example.com", "admin-cli", null, "ACTIVE", SsoTestPassword.RAW));
     }
 
     @Test
@@ -429,8 +430,8 @@ class AdminResourceScopePermissionIntegrationTest extends AbstractIamIntegration
         MvcResult result = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"admin-cli","client_id":"%s"}
-                                """.formatted(endUser.username(), clientId)))
+                                {"username":"%s","password":"%s","tenant_id":"admin-cli","client_id":"%s"}
+                                """.formatted(endUser.username(), SsoTestPassword.RAW, clientId)))
                 .andExpect(status().isOk())
                 .andReturn();
         return result.getResponse().getCookie(SsoCookieService.COOKIE_NAME);

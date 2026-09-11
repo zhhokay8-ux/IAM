@@ -70,7 +70,7 @@ Authentication（登录、SSO Cookie）与 Token Issuing（`/oauth2/token`）在
 ## 必须先知道的限制
 
 1. **Client / Resource / Scope / Embed Policy 没有 REST Admin API**（`iam-admin` 只有 `package-info`）。创建方式见 [08](08-Client注册.md)。
-2. **`POST /sso/login` 不校验密码**，只按 `username` + `tenant_id` 找用户（`SsoAuthenticationService`）。
+2. **`POST /sso/login` 校验 BCrypt 密码**（`iam_user.password_hash`）。仍无限流。
 3. Discovery 声明了 `/oidc/userinfo`，**没有对应 Controller**。
 4. 签名私钥在 **JVM 内存**（`LocalSigningKeySecretStore`），多节点不能直接水平扩展签发。
 5. 无独立 Vue/React SDK。【当前项目不支持】把 Refresh Token 放到浏览器。

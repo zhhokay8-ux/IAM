@@ -129,7 +129,8 @@ public class SsoIntegrationTest extends AbstractIamIntegrationTest {
         permissionService.create(new CreatePermissionRequest(
                 system1ClientId, system1Resource, OPENID, "authorization_code", RegistryStatus.ACTIVE));
         UserResponse user = userService.create(
-                new CreateUserRequest(username, "User", username + "@example.com", "tenant-1", "org-1", "ACTIVE"));
+                new CreateUserRequest(
+                        username, "User", username + "@example.com", "tenant-1", "org-1", "ACTIVE", SsoTestPassword.RAW));
         subject = user.subjectId();
     }
 
@@ -227,12 +228,54 @@ public class SsoIntegrationTest extends AbstractIamIntegrationTest {
         assertThat(authorize.getResponse().getHeader("Location")).contains("error=invalid_request");
     }
 
-    private Cookie login() throws Exception {
-        MvcResult result = mockMvc.perform(post("/sso/login")
+    @Test
+    void wrongPasswordDoesNotCreateSession() throws Exception {
+        mockMvc.perform(post("/sso/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"%s","password":"wrong-pass","tenant_id":"tenant-1","client_id":"%s"}
+                                """.formatted(username, portalClientId)))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value(IamErrorCode.INVALID_CREDENTIALS.getCode()));
+        assertThat(mockMvc.perform(post("/sso/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"%s","password":"%s","tenant_id":"tenant-1","client_id":"%s"}
+                                """.formatted("missing-" + suffix, SsoTestPassword.RAW, portalClientId)))
+                .andReturn()
+                .getResponse()
+                .getCookie(SsoCookieService.COOKIE_NAME)).isNull();
+    }
+
+    @Test
+    void passwordIsRequired() throws Exception {
+        mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"username":"%s","tenant_id":"tenant-1","client_id":"%s"}
                                 """.formatted(username, portalClientId)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(IamErrorCode.INVALID_ARGUMENT.getCode()));
+    }
+
+    @Test
+    void inactiveUserWithCorrectPasswordIsRejected() throws Exception {
+        userService.disable(UUID.fromString(subject));
+        mockMvc.perform(post("/sso/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"%s","password":"%s","tenant_id":"tenant-1","client_id":"%s"}
+                                """.formatted(username, SsoTestPassword.RAW, portalClientId)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.code").value(IamErrorCode.USER_INACTIVE.getCode()));
+    }
+
+    private Cookie login() throws Exception {
+        MvcResult result = mockMvc.perform(post("/sso/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"%s","password":"%s","tenant_id":"tenant-1","client_id":"%s"}
+                                """.formatted(username, SsoTestPassword.RAW, portalClientId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.subject_id").value(subject))
                 .andReturn();

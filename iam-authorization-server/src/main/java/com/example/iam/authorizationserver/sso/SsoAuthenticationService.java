@@ -42,7 +42,8 @@ public class SsoAuthenticationService {
                 throw new IamException(IamErrorCode.INVALID_ARGUMENT, "login request is required");
             }
             clientService.requireActiveClient(request.clientId());
-            IamUserEntity user = userService.requireActiveByUsernameAndTenantId(request.username(), request.tenantId());
+            IamUserEntity user = userService.authenticatePassword(
+                    request.username(), request.tenantId(), request.password());
             IamSession session = sessionService.create(user.getSubjectId().toString(), request.clientId(), "pwd");
             cookieService.write(response, session, sessionService.ttl());
             auditService.success(AuditEvent.LOGIN_SUCCESS, user.getSubjectId().toString(), request.clientId(), null);

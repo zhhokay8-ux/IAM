@@ -180,34 +180,41 @@ WHEN MATCHED THEN UPDATE SET t.status = s.status
 WHEN NOT MATCHED THEN INSERT (id, client_id, resource_id, scope_id, grant_type, status, created_at)
 VALUES (s.id, s.client_pk, s.resource_pk, s.scope_pk, s.grant_type, s.status, SYSTIMESTAMP);
 
--- iam_user（id 与 subject_id 使用同一明文 UUID）
+-- iam_user（id 与 subject_id 使用同一明文 UUID；开发口令 ChangeMe123!，仅 BCrypt 哈希入库）
 MERGE INTO iam_user t
 USING (
     SELECT 'e1000000-0000-0000-0000-000000000001' AS id, 'admin' AS username, 'IAM Admin' AS display_name,
-           'ACTIVE' AS status, 'iam' AS tenant_id, 'hq' AS org_id, 'admin@example.com' AS email FROM dual
+           'ACTIVE' AS status, 'iam' AS tenant_id, 'hq' AS org_id, 'admin@example.com' AS email,
+           '$2b$10$UpRyCdJvQ06gk7wF12e3E.xifGdtQuDQKHQ5QIMmwYHRTNBihRdzu' AS password_hash FROM dual
     UNION ALL
     SELECT 'e1000000-0000-0000-0000-000000000002', 'secadmin', 'Security Admin',
-           'ACTIVE', 'iam', 'hq', 'secadmin@example.com' FROM dual
+           'ACTIVE', 'iam', 'hq', 'secadmin@example.com',
+           '$2b$10$UpRyCdJvQ06gk7wF12e3E.xifGdtQuDQKHQ5QIMmwYHRTNBihRdzu' FROM dual
     UNION ALL
     SELECT 'e1000000-0000-0000-0000-000000000003', 'operator', 'Operator',
-           'ACTIVE', 'iam', 'ops', 'operator@example.com' FROM dual
+           'ACTIVE', 'iam', 'ops', 'operator@example.com',
+           '$2b$10$UpRyCdJvQ06gk7wF12e3E.xifGdtQuDQKHQ5QIMmwYHRTNBihRdzu' FROM dual
     UNION ALL
     SELECT 'e1000000-0000-0000-0000-000000000004', 'auditor', 'Auditor',
-           'ACTIVE', 'iam', 'audit', 'auditor@example.com' FROM dual
+           'ACTIVE', 'iam', 'audit', 'auditor@example.com',
+           '$2b$10$UpRyCdJvQ06gk7wF12e3E.xifGdtQuDQKHQ5QIMmwYHRTNBihRdzu' FROM dual
     UNION ALL
     SELECT 'e1000000-0000-0000-0000-000000000005', 'alice', 'Alice',
-           'ACTIVE', 'iam', 'org-1', 'alice@example.com' FROM dual
+           'ACTIVE', 'iam', 'org-1', 'alice@example.com',
+           '$2b$10$UpRyCdJvQ06gk7wF12e3E.xifGdtQuDQKHQ5QIMmwYHRTNBihRdzu' FROM dual
     UNION ALL
     SELECT 'e1000000-0000-0000-0000-000000000006', 'disabled', 'Disabled User',
-           'INACTIVE', 'iam', 'org-1', 'disabled@example.com' FROM dual
+           'INACTIVE', 'iam', 'org-1', 'disabled@example.com',
+           '$2b$10$UpRyCdJvQ06gk7wF12e3E.xifGdtQuDQKHQ5QIMmwYHRTNBihRdzu' FROM dual
 ) s
 ON (t.tenant_id = s.tenant_id AND t.username = s.username)
 WHEN MATCHED THEN UPDATE SET
-    t.display_name = s.display_name, t.status = s.status, t.org_id = s.org_id, t.email = s.email, t.updated_at = SYSTIMESTAMP
+    t.display_name = s.display_name, t.status = s.status, t.org_id = s.org_id, t.email = s.email,
+    t.password_hash = s.password_hash, t.updated_at = SYSTIMESTAMP
 WHEN NOT MATCHED THEN INSERT (
-    id, subject_id, username, display_name, status, tenant_id, org_id, created_at, updated_at, email
+    id, subject_id, username, display_name, status, tenant_id, org_id, created_at, updated_at, email, password_hash
 ) VALUES (
-    s.id, s.id, s.username, s.display_name, s.status, s.tenant_id, s.org_id, SYSTIMESTAMP, SYSTIMESTAMP, s.email
+    s.id, s.id, s.username, s.display_name, s.status, s.tenant_id, s.org_id, SYSTIMESTAMP, SYSTIMESTAMP, s.email, s.password_hash
 );
 
 -- iam_user_identity_mapping（FK subject_id -> iam_user.subject_id）

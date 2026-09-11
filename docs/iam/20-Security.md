@@ -17,9 +17,9 @@
 | Refresh Rotation / reuse | 【已实现】 | |
 | JTI 吊销 | 【部分实现】Revoke 写入；SDK 默认不查 | `IamSecurityConfiguration` |
 | Rate Limit | 【部分实现】网关进程内；IAM 策略 Redis 库存在但网关未接 | |
-| Brute force 登录 | 【设计存在但代码未实现】无密码也无锁定 | |
+| Brute force 登录 | 【未实现】已有密码校验，仍无锁定/限流 | |
 | Token Exchange aud/scope | 【已实现】 | |
 | JWKS / Key rotation | 【部分实现】旋转服务有；私钥内存丢失 | |
-| 登录密码 | 【设计存在但代码未实现】`SsoLoginRequest` 无 password | |
+| 登录密码 | `POST /sso/login` 校验 `iam_user.password_hash`（BCrypt）；无 hash / 错密码 → IAM-4020 |
 
 生产务必：HTTPS、`IAM_SSO_COOKIE_SECURE=true`、强 admin token、CORS 收紧、不要把 issuer 配成带 userinfo 的 URL（Discovery 会拒）。

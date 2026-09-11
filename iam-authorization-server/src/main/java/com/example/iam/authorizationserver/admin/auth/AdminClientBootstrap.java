@@ -57,7 +57,7 @@ public class AdminClientBootstrap implements ApplicationRunner {
         IamAdminProperties.OAuth oauth = properties.getOauth();
         if (!StringUtils.hasText(oauth.getClientSecret())) {
             log.warn(
-                    "iam.admin.oauth.client-secret is empty; confidential Admin BFF client will not be bootstrapped. DEVELOPMENT ONLY SSO remains at POST /sso/login (no password).");
+                    "iam.admin.oauth.client-secret is empty; confidential Admin BFF client will not be bootstrapped. POST /sso/login still requires username and password.");
             return;
         }
         redirectUriValidator.validateSyntax(oauth.getRedirectUri());
@@ -66,7 +66,7 @@ public class AdminClientBootstrap implements ApplicationRunner {
         ensureScope(oauth);
         ensurePermission(oauth);
         log.warn(
-                "Admin client '{}' bootstrapped as confidential + PKCE BFF. Browser must not receive client_secret or tokens. POST /sso/login is DEVELOPMENT ONLY and is not production-grade admin authentication.",
+                "Admin client '{}' bootstrapped as confidential + PKCE BFF. Browser must not receive client_secret or tokens. POST /sso/login verifies password then issues IAM_SSO_SESSION.",
                 oauth.getClientId());
     }
 

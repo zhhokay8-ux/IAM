@@ -27,5 +27,7 @@ public interface IamUserService {
 
     IamUserEntity requireActiveByUsernameAndTenantId(String username, String tenantId);
 
+    IamUserEntity authenticatePassword(String username, String tenantId, String rawPassword);
+
     UserContext requireActiveForToken(UUID subjectId);
 }

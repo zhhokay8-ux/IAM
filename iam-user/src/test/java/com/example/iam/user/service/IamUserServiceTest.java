@@ -13,6 +13,7 @@ import com.example.iam.user.domain.UserStatus;
 import com.example.iam.user.dto.CreateUserRequest;
 import com.example.iam.user.dto.UpdateUserRequest;
 import com.example.iam.user.entity.IamUserEntity;
+import com.example.iam.user.password.IamPasswordHasher;
 import com.example.iam.user.repository.IamUserRepository;
 import com.example.iam.user.service.impl.IamUserServiceImpl;
 import com.example.iam.user.subject.UserSubjectGenerator;
@@ -39,7 +40,8 @@ class IamUserServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new IamUserServiceImpl(userRepository, subjectGenerator, new UserContextFactory());
+        service = new IamUserServiceImpl(
+                userRepository, subjectGenerator, new UserContextFactory(), new IamPasswordHasher());
         subjectId = UUID.fromString("01999a2e-7c3a-7000-8000-000000000001");
     }
 
@@ -95,6 +97,24 @@ class IamUserServiceTest {
         when(userRepository.findBySubjectId(subjectId)).thenReturn(Optional.of(entity));
         when(userRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         assertEquals(UserStatus.INACTIVE, service.disable(subjectId).status());
+    }
+
+    @Test
+    void authenticatePasswordRejectsUnknownUserAndWrongPasswordTheSameWay() {
+        IamUserEntity entity = user(UserStatus.ACTIVE);
+        entity.setPasswordHash(new IamPasswordHasher().hash("sso-test-pass"));
+        when(userRepository.findByUsernameAndTenantId("zhangsan", "tenant_01")).thenReturn(Optional.of(entity));
+
+        assertEquals(subjectId, service.authenticatePassword("zhangsan", "tenant_01", "sso-test-pass").getSubjectId());
+
+        IamException wrong = assertThrows(
+                IamException.class, () -> service.authenticatePassword("zhangsan", "tenant_01", "wrong-pass"));
+        assertEquals(IamErrorCode.INVALID_CREDENTIALS, wrong.getErrorCode());
+
+        when(userRepository.findByUsernameAndTenantId("nobody", "tenant_01")).thenReturn(Optional.empty());
+        IamException missing = assertThrows(
+                IamException.class, () -> service.authenticatePassword("nobody", "tenant_01", "sso-test-pass"));
+        assertEquals(IamErrorCode.INVALID_CREDENTIALS, missing.getErrorCode());
     }
 
     private IamUserEntity user(String status) {

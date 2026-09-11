@@ -17,6 +17,7 @@ import com.example.iam.authorizationserver.AbstractIamIntegrationTest;
 import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.oauth.introspect.TokenIntrospectionService;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.domain.RegistryStatus;
 import com.example.iam.clientregistry.dto.CreateClientRequest;
 import com.example.iam.clientregistry.dto.CreatePermissionRequest;
@@ -163,8 +164,8 @@ class AdminUserManagementIntegrationTest extends AbstractIamIntegrationTest {
                         .header(HttpHeaders.AUTHORIZATION, adminBearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"tgt%s","display_name":"T","email":"tgt%s@example.com","tenant_id":"admin-cli"}
-                                """.formatted(suffix, suffix)))
+                                {"username":"tgt%s","display_name":"T","email":"tgt%s@example.com","tenant_id":"admin-cli","password":"%s"}
+                                """.formatted(suffix, suffix, SsoTestPassword.RAW)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(UserStatus.INACTIVE))
                 .andReturn();
@@ -221,8 +222,8 @@ class AdminUserManagementIntegrationTest extends AbstractIamIntegrationTest {
         mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"tgt%s","tenant_id":"admin-cli","client_id":"%s"}
-                                """.formatted(suffix, clientId)))
+                                {"username":"tgt%s","password":"%s","tenant_id":"admin-cli","client_id":"%s"}
+                                """.formatted(suffix, SsoTestPassword.RAW, clientId)))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.code").value(IamErrorCode.USER_INACTIVE.getCode()));
 
@@ -336,8 +337,8 @@ class AdminUserManagementIntegrationTest extends AbstractIamIntegrationTest {
         MvcResult result = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"admin-cli","client_id":"%s"}
-                                """.formatted(username, clientId)))
+                                {"username":"%s","password":"%s","tenant_id":"admin-cli","client_id":"%s"}
+                                """.formatted(username, SsoTestPassword.RAW, clientId)))
                 .andExpect(status().isOk())
                 .andReturn();
         return result.getResponse().getCookie(SsoCookieService.COOKIE_NAME);

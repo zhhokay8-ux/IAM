@@ -7,4 +7,5 @@ public record AdminCreateUserRequest(
         @JsonProperty("display_name") String displayName,
         String email,
         @JsonProperty("tenant_id") String tenantId,
-        @JsonProperty("org_id") String orgId) {}
+        @JsonProperty("org_id") String orgId,
+        String password) {}

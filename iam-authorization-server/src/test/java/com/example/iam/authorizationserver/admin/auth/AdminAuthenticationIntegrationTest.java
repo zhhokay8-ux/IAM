@@ -15,6 +15,7 @@ import com.example.iam.admin.repository.IamAdminUserRoleRepository;
 import com.example.iam.authorizationserver.AbstractIamIntegrationTest;
 import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.service.IamClientService;
 import com.example.iam.common.security.CsrfTokenService;
 import com.example.iam.core.redis.RedisKeyConstants;
@@ -238,7 +239,13 @@ class AdminAuthenticationIntegrationTest extends AbstractIamIntegrationTest {
 
     private UserResponse createUser(String prefix) {
         return userService.create(new CreateUserRequest(
-                prefix + suffix, prefix, prefix + suffix + "@example.com", "admin-auth", null, "ACTIVE"));
+                prefix + suffix,
+                prefix,
+                prefix + suffix + "@example.com",
+                "admin-auth",
+                null,
+                "ACTIVE",
+                SsoTestPassword.RAW));
     }
 
     private void bind(UserResponse user, String roleCode) {
@@ -254,8 +261,8 @@ class AdminAuthenticationIntegrationTest extends AbstractIamIntegrationTest {
         MvcResult result = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"admin-auth","client_id":"iam-admin"}
-                                """.formatted(user.username())))
+                                {"username":"%s","password":"%s","tenant_id":"admin-auth","client_id":"iam-admin"}
+                                """.formatted(user.username(), SsoTestPassword.RAW)))
                 .andExpect(status().isOk())
                 .andReturn();
         Cookie cookie = result.getResponse().getCookie(SsoCookieService.COOKIE_NAME);

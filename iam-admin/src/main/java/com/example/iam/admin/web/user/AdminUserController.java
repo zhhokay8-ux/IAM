@@ -79,7 +79,8 @@ public class AdminUserController {
                 request.email(),
                 request.tenantId(),
                 request.orgId(),
-                UserStatus.INACTIVE));
+                UserStatus.INACTIVE,
+                request.password()));
         audit(http, AuditEvent.USER_CREATED, created.subjectId(), "admin_create_user");
         return created;
     }

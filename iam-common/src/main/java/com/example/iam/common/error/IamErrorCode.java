@@ -44,6 +44,7 @@ public enum IamErrorCode {
     INVALID_JWT_ISSUER("IAM-4017", 401, "Invalid JWT issuer"),
     INVALID_JWT_AUDIENCE("IAM-4018", 401, "Invalid JWT audience"),
     TOKEN_REVOKED("IAM-4019", 401, "Token has been revoked"),
+    INVALID_CREDENTIALS("IAM-4020", 401, "Invalid username or password"),
     SESSION_NOT_FOUND("IAM-4050", 401, "SSO session not found"),
     SESSION_EXPIRED("IAM-4051", 401, "SSO session expired"),
     SESSION_REVOKED("IAM-4052", 401, "SSO session revoked"),

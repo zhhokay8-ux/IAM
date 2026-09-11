@@ -16,6 +16,7 @@ import com.example.iam.audit.repository.IamAuditLogRepository;
 import com.example.iam.authorizationserver.AbstractIamIntegrationTest;
 import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.domain.RegistryStatus;
 import com.example.iam.clientregistry.dto.CreateClientRequest;
 import com.example.iam.clientregistry.dto.CreateResourceRequest;
@@ -144,7 +145,7 @@ class AdminAdvancedOperationsIntegrationTest extends AbstractIamIntegrationTest 
                 childId, "C", "confidential", RegistryStatus.ACTIVE, "client_secret_basic", 600, 86400, true, "iam",
                 List.of(new RedirectUriInput("https://child.example.com/cb", "LOGIN_CALLBACK")), SECRET));
         UserResponse user = userService.create(new CreateUserRequest(
-                "p8u" + suffix, "U", "p8u" + suffix + "@example.com", "admin-cli", null, "ACTIVE"));
+                "p8u" + suffix, "U", "p8u" + suffix + "@example.com", "admin-cli", null, "ACTIVE", SsoTestPassword.RAW));
 
         mockMvc.perform(post("/api/admin/embed-policies")
                         .header(HttpHeaders.AUTHORIZATION, adminBearer)
@@ -177,8 +178,8 @@ class AdminAdvancedOperationsIntegrationTest extends AbstractIamIntegrationTest 
         MvcResult login = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"admin-cli","client_id":"%s"}
-                                """.formatted(user.username(), parentId)))
+                                {"username":"%s","password":"%s","tenant_id":"admin-cli","client_id":"%s"}
+                                """.formatted(user.username(), SsoTestPassword.RAW, parentId)))
                 .andExpect(status().isOk())
                 .andReturn();
         Cookie session = login.getResponse().getCookie(SsoCookieService.COOKIE_NAME);

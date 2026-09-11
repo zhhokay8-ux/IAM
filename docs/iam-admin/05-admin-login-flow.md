@@ -15,7 +15,7 @@ BFF 生成 state、nonce、code_verifier（只存 Redis admin:oauth:{state}）
         ↓
 【DEVELOPMENT ONLY】若无 SSO Cookie：
   authorize 把 error 送到 /admin/callback（invalid_request）
-  用户需先 POST /sso/login（无密码，非生产）
+  用户需先 POST /sso/login（username + password）
         ↓
 已有 IamSession Cookie → AuthorizationService 发 code
         ↓

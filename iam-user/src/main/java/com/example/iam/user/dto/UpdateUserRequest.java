@@ -5,6 +5,10 @@ public record UpdateUserRequest(
         String displayName,
         String email,
         String orgId,
-        String status
+        String status,
+        String password
 ) {
+    public UpdateUserRequest(String username, String displayName, String email, String orgId, String status) {
+        this(username, displayName, email, orgId, status, null);
+    }
 }

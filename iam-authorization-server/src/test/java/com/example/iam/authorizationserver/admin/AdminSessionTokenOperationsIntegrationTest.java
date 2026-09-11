@@ -18,6 +18,7 @@ import com.example.iam.authorizationserver.IamAuthorizationServerApplication;
 import com.example.iam.authorizationserver.admin.token.AdminTokenIntrospectResponse;
 import com.example.iam.authorizationserver.oauth.introspect.TokenIntrospectionService;
 import com.example.iam.authorizationserver.sso.SsoCookieService;
+import com.example.iam.authorizationserver.sso.SsoTestPassword;
 import com.example.iam.clientregistry.domain.RegistryStatus;
 import com.example.iam.clientregistry.dto.CreateClientRequest;
 import com.example.iam.clientregistry.dto.CreatePermissionRequest;
@@ -316,8 +317,8 @@ class AdminSessionTokenOperationsIntegrationTest extends AbstractIamIntegrationT
                         .header(HttpHeaders.AUTHORIZATION, adminBearer)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s%s","display_name":"T","email":"%s%s@example.com","tenant_id":"admin-cli"}
-                                """.formatted(prefix, suffix, prefix, suffix)))
+                                {"username":"%s%s","display_name":"T","email":"%s%s@example.com","tenant_id":"admin-cli","password":"%s"}
+                                """.formatted(prefix, suffix, prefix, suffix, SsoTestPassword.RAW)))
                 .andExpect(status().isOk())
                 .andReturn();
         String subjectId = com.jayway.jsonpath.JsonPath.read(created.getResponse().getContentAsString(), "$.subjectId");
@@ -330,8 +331,8 @@ class AdminSessionTokenOperationsIntegrationTest extends AbstractIamIntegrationT
         MvcResult result = mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"%s","tenant_id":"admin-cli","client_id":"%s"}
-                                """.formatted(username, clientId)))
+                                {"username":"%s","password":"%s","tenant_id":"admin-cli","client_id":"%s"}
+                                """.formatted(username, SsoTestPassword.RAW, clientId)))
                 .andExpect(status().isOk())
                 .andReturn();
         return result.getResponse().getCookie(SsoCookieService.COOKIE_NAME);

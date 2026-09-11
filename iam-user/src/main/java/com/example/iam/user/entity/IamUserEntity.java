@@ -72,6 +72,12 @@ public class IamUserEntity {
     private String email;
 
     /**
+     * BCrypt 口令哈希，禁止明文。
+     */
+    @Column(name = "password_hash", length = 100)
+    private String passwordHash;
+
+    /**
      * 用户状态。
      */
     @Column(name = "status", nullable = false, length = 32)

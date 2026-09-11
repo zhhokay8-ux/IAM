@@ -15,7 +15,7 @@ Redirect URI 必须精确匹配，禁止 `*`。校验走现有 `IamRedirectUriVa
 
 ## DEVELOPMENT ONLY 风险
 
-`POST /sso/login` **仍然没有密码**（只校验 username+tenant+active client）。Admin OAuth 的 `/oauth2/authorize` 依赖这条 SSO Session。
+`POST /sso/login` **校验 BCrypt 密码**（`iam_user.password_hash`）。Admin OAuth 的 `/oauth2/authorize` 依赖这条 SSO Session。仍无限流/MFA。
 
 因此 Phase 2 **不是**生产级管理员认证。生产必须先补真正的 IdP/口令/MFA，再让 Admin 走同一套 OAuth。文档与启动日志均标明 DEVELOPMENT ONLY。不得把 `/sso/login` 称为生产管理员登录。
 

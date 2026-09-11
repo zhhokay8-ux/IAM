@@ -23,12 +23,12 @@ Portal BFF 建自己的 Session（本 IAM 不替 Portal 管业务 Session）
 本仓库 SSO 登录是 JSON，不是 HTML 表单：
 
 ```javascript
-// 1) 建立 IAM SSO（无密码字段，见 99）
+// 1) 建立 IAM SSO（username + password）
 await fetch("http://localhost:8080/sso/login", {
   method: "POST",
   credentials: "include",
   headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfFromCookie() },
-  body: JSON.stringify({ username: "alice", tenant_id: "tenant-1", client_id: "portal" })
+  body: JSON.stringify({ username: "alice", password: "ChangeMe123!", tenant_id: "tenant-1", client_id: "portal" })
 });
 ```
 

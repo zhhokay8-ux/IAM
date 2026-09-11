@@ -9,6 +9,7 @@ import com.example.iam.user.dto.CreateUserRequest;
 import com.example.iam.user.dto.UpdateUserRequest;
 import com.example.iam.user.dto.UserResponse;
 import com.example.iam.user.entity.IamUserEntity;
+import com.example.iam.user.password.IamPasswordHasher;
 import com.example.iam.user.repository.IamUserRepository;
 import com.example.iam.user.service.IamUserService;
 import com.example.iam.user.subject.UserSubjectGenerator;
@@ -32,17 +33,22 @@ public class IamUserServiceImpl implements IamUserService {
 
     private static final Logger log = LoggerFactory.getLogger(IamUserServiceImpl.class);
 
+    private static final int MIN_PASSWORD_LENGTH = 8;
+
     private final IamUserRepository userRepository;
     private final UserSubjectGenerator subjectGenerator;
     private final UserContextFactory userContextFactory;
+    private final IamPasswordHasher passwordHasher;
 
     public IamUserServiceImpl(
             IamUserRepository userRepository,
             UserSubjectGenerator subjectGenerator,
-            UserContextFactory userContextFactory) {
+            UserContextFactory userContextFactory,
+            IamPasswordHasher passwordHasher) {
         this.userRepository = userRepository;
         this.subjectGenerator = subjectGenerator;
         this.userContextFactory = userContextFactory;
+        this.passwordHasher = passwordHasher;
     }
 
     @Override
@@ -63,6 +69,7 @@ public class IamUserServiceImpl implements IamUserService {
                 .status(UserStatus.normalize(request.status()))
                 .tenantId(tenantId)
                 .orgId(request.orgId())
+                .passwordHash(encodePasswordIfPresent(request.password()))
                 .createdAt(now)
                 .updatedAt(now)
                 .build());
@@ -95,6 +102,9 @@ public class IamUserServiceImpl implements IamUserService {
         }
         if (request.status() != null) {
             entity.setStatus(UserStatus.normalize(request.status()));
+        }
+        if (request.password() != null) {
+            entity.setPasswordHash(encodePasswordIfPresent(request.password()));
         }
         entity.setUpdatedAt(Instant.now());
         IamUserEntity saved = userRepository.save(entity);
@@ -183,8 +193,36 @@ public class IamUserServiceImpl implements IamUserService {
 
     @Override
     @Transactional(readOnly = true)
+    public IamUserEntity authenticatePassword(String username, String tenantId, String rawPassword) {
+        String normalizedUsername = requireText(username, "username");
+        String normalizedTenant = requireText(tenantId, "tenant_id");
+        String password = requireText(rawPassword, "password");
+        IamUserEntity entity = userRepository.findByUsernameAndTenantId(normalizedUsername, normalizedTenant)
+                .orElse(null);
+        boolean passwordOk = passwordHasher.matches(password, entity == null ? null : entity.getPasswordHash());
+        if (entity == null || !passwordOk) {
+            throw new IamException(IamErrorCode.INVALID_CREDENTIALS, "username or password is incorrect");
+        }
+        if (!UserStatus.isActive(entity.getStatus())) {
+            throw new IamException(IamErrorCode.USER_INACTIVE, "user is inactive");
+        }
+        return entity;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public UserContext requireActiveForToken(UUID subjectId) {
         return userContextFactory.forToken(requireUser(subjectId));
+    }
+
+    private String encodePasswordIfPresent(String rawPassword) {
+        if (rawPassword == null) {
+            return null;
+        }
+        if (rawPassword.isBlank() || rawPassword.length() < MIN_PASSWORD_LENGTH) {
+            throw new IamException(IamErrorCode.INVALID_ARGUMENT, "password must be at least 8 characters");
+        }
+        return passwordHasher.hash(rawPassword);
     }
 
     private static String requireText(String value, String field) {
