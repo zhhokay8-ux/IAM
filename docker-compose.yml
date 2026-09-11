@@ -1,0 +1,57 @@
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21-slim-faststart
+    environment:
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?ORACLE_PASSWORD must be set}
+      APP_USER: iam
+      APP_USER_PASSWORD: ${ORACLE_PASSWORD}
+    ports:
+      - "127.0.0.1:1521:1521"
+    volumes:
+      - iam-oracle:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+      start_period: 90s
+
+  redis:
+    image: redis:7-alpine
+    command:
+      - sh
+      - -c
+      - redis-server --requirepass "$$REDIS_PASSWORD"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD must be set}
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  iam:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      oracle:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:oracle:thin:@//oracle:1521/XEPDB1
+      DB_USERNAME: iam
+      DB_PASSWORD: ${ORACLE_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      IAM_ISSUER: ${IAM_ISSUER:-http://localhost:8080}
+      IAM_SSO_COOKIE_SECURE: "false"
+    ports:
+      - "8080:8080"
+
+volumes:
+  iam-oracle:

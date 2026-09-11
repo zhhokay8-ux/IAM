@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan testclass="TestPlan" testname="IAM Token Exchange">
+      <stringProp name="TestPlan.comments">POST /oauth2/token grant_type=urn:ietf:params:oauth:grant-type:token-exchange. Collect avg, P50, P90, P95, P99, TPS, error rate.</stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup testclass="ThreadGroup" testname="token-exchange">
+        <intProp name="ThreadGroup.num_threads">30</intProp>
+        <intProp name="ThreadGroup.ramp_time">10</intProp>
+        <stringProp name="ThreadGroup.duration">60</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy testclass="HTTPSamplerProxy" testname="POST token-exchange">
+          <stringProp name="HTTPSampler.path">/oauth2/token</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy testclass="HTTPSamplerProxy" testname="POST /api/embed/code">
+          <stringProp name="HTTPSampler.path">/api/embed/code</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <HTTPSamplerProxy testclass="HTTPSamplerProxy" testname="POST /api/embed/exchange">
+          <stringProp name="HTTPSampler.path">/api/embed/exchange</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <ResultCollector testclass="ResultCollector" testname="Aggregate Report"/>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

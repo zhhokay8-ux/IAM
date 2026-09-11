@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: iam-gateway
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - com.example.iam.sdk.IamAutoConfiguration
+
+iam:
+  issuer: ${IAM_ISSUER:https://auth.example.com}
+  gateway:
+    issuer: ${IAM_ISSUER:https://auth.example.com}
+    clock-skew: 30s
+    cors-allowed-origins: []
+    rate-limit: 100
+    rate-limit-window: 1m
+    permit-all: /health,/actuator/health

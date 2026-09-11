@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: iam-authorization-server
+  datasource:
+    url: ${DB_URL:jdbc:oracle:thin:@172.16.1.205:1521:newnhis}
+    username: ${DB_USERNAME:IAM}
+    password: ${DB_PASSWORD:Mtm2025#$%^}
+    hikari:
+      maximum-pool-size: 10
+      data-source-properties:
+        oracle.jdbc.timezoneAsRegion: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jpa:
+    database-platform: org.hibernate.community.dialect.OracleLegacyDialect
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        type:
+          preferred_uuid_jdbc_type: VARCHAR
+          preferred_instant_jdbc_type: TIMESTAMP
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
+server:
+  port: 8080
+
+iam:
+  enabled: true
+  migration:
+    mode: dual
+    ticket-ttl: 45s
+  issuer: ${IAM_ISSUER:http://localhost:8080}
+  jwt:
+    algorithm: RS256
+    rsa-key-size: 2048
+    access-token-ttl: 10m
+  admin:
+    access-token: ${IAM_ADMIN_TOKEN:}
+    cookie-name: ${iam.sso.cookie-name:IAM_SSO_SESSION}
+    legacy-token:
+      enabled: ${IAM_ADMIN_LEGACY_TOKEN_ENABLED:false}
+    oauth:
+      client-id: iam-admin
+      client-secret: ${IAM_ADMIN_CLIENT_SECRET:dev-only-admin-secret}
+      redirect-uri: ${IAM_ADMIN_REDIRECT_URI:http://localhost:5173/admin/callback}
+      post-login-uri: ${IAM_ADMIN_POST_LOGIN_URI:http://localhost:5173/admin/}
+      resource-code: IAM-ADMIN
+      audience: iam-admin
+      scope: openid
+  redis:
+    authorization-code-ttl: 60s
+    embed-code-ttl: 30s
+    oauth-state-ttl: 5m
+    pkce-state-ttl: 5m
+    nonce-ttl: 5m
+    session-ttl: 8h
+    migration-ticket-ttl: 45s
+    refresh-token-status-ttl: 30d
+    revoked-jti-ttl: 15m
+    rate-limit-ttl: 1m
+  sso:
+    cookie-name: IAM_SSO_SESSION
+    cookie-secure: ${IAM_SSO_COOKIE_SECURE:false}
+    cookie-same-site: Lax
+    cookie-path: /
+  cors:
+    allowed-origins:
+      - https://portal.example.com
+      - https://system1.example.com
+      - http://localhost:8080
+      - http://localhost:5173
+    embed-parent-origins:
+      - https://portal.example.com
+    allow-credentials: true
+  jwks:
+    cache-ttl: 1h
+    refresh: 10m

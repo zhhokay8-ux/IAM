@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.example.iam</groupId>
+        <artifactId>iam-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>iam-admin</artifactId>
+    <name>IAM Admin</name>
+    <description>IAM administration APIs and RBAC</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-client-registry</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-policy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-user</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-audit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-session</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-token</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.example.iam</groupId>
+            <artifactId>iam-embed</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

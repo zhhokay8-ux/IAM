@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan testclass="TestPlan" testname="IAM JWT Validation">
+      <stringProp name="TestPlan.comments">Local JWT validation against cached JWKS. Auth Center may be down. Report latency percentiles and error rate.</stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup testclass="ThreadGroup" testname="jwt-validate">
+        <intProp name="ThreadGroup.num_threads">100</intProp>
+        <intProp name="ThreadGroup.ramp_time">10</intProp>
+        <stringProp name="ThreadGroup.duration">60</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy testclass="HTTPSamplerProxy" testname="GET business API with Bearer">
+          <stringProp name="HTTPSampler.path">/orders/1</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+        </HTTPSamplerProxy>
+        <hashTree/>
+        <ResultCollector testclass="ResultCollector" testname="Aggregate Report"/>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
