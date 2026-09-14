@@ -35,6 +35,19 @@ class SecurityRegressionTest {
     }
 
     @Test
+    void csrfAllowsSsoLoginWithoutTokenEvenWithSessionCookie() throws Exception {
+        CorsProperties properties = new CorsProperties();
+        properties.setAllowedOrigins(List.of("http://localhost:3000"));
+        CsrfValidationFilter filter = new CsrfValidationFilter(
+                new CsrfTokenService(), new CorsOriginValidator(), properties, "IAM_SSO_SESSION");
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/sso/login");
+        request.setCookies(new jakarta.servlet.http.Cookie("IAM_SSO_SESSION", "sid"));
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        filter.doFilter(request, response, new MockFilterChain());
+        assertEquals(200, response.getStatus());
+    }
+
+    @Test
     void csrfRejectsCookiePostWithoutToken() throws Exception {
         CorsProperties properties = new CorsProperties();
         properties.setAllowedOrigins(List.of("https://portal.example.com"));

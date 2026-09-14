@@ -248,6 +248,18 @@ public class SsoIntegrationTest extends AbstractIamIntegrationTest {
     }
 
     @Test
+    void csrfEndpointIssuesReadableToken() throws Exception {
+        MvcResult result = mockMvc.perform(get("/sso/csrf"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.csrf_token").isNotEmpty())
+                .andReturn();
+        Cookie cookie = result.getResponse().getCookie(com.example.iam.common.security.CsrfTokenService.COOKIE);
+        assertThat(cookie).isNotNull();
+        assertThat(cookie.getValue())
+                .isEqualTo(com.jayway.jsonpath.JsonPath.read(result.getResponse().getContentAsString(), "$.csrf_token"));
+    }
+
+    @Test
     void passwordIsRequired() throws Exception {
         mockMvc.perform(post("/sso/login")
                         .contentType(MediaType.APPLICATION_JSON)

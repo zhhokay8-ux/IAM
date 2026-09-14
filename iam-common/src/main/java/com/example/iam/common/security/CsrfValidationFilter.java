@@ -81,7 +81,9 @@ public class CsrfValidationFilter extends OncePerRequestFilter implements Ordere
         if (path != null
                 && (path.startsWith("/oauth2/")
                         || path.startsWith("/.well-known/")
-                        || path.equals("/oidc/backchannel-logout"))) {
+                        || path.equals("/oidc/backchannel-logout")
+                        // 登录本身是在建立会话；跨域 SPA 读不到 IAM_CSRF，且首次登录本就不校验 CSRF
+                        || path.endsWith("/sso/login"))) {
             return false;
         }
         return hasSessionCookie(request);
