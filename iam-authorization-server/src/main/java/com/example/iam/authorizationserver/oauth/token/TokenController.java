@@ -22,8 +22,8 @@ public class TokenController {
             path = "/oauth2/token",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
             params = {
-                "!grant_type=urn:ietf:params:oauth:grant-type:token-exchange",
-                "!grant_type=token-exchange"
+                "grant_type!=urn:ietf:params:oauth:grant-type:token-exchange",
+                "grant_type!=token-exchange"
             })
     public TokenResponse token(
             @RequestParam(name = "grant_type", required = false) String grantType,

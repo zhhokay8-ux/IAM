@@ -61,4 +61,21 @@ class JwksServiceTest {
         assertTrue(set.getKeyByKeyId(second) != null);
         set.getKeys().forEach(key -> assertFalse(key.isPrivate()));
     }
+
+    @Test
+    void jwksSkipsKeysWhoseLocalMaterialIsGone() {
+        InMemorySigningKeyRepository repository = new InMemorySigningKeyRepository();
+        LocalSigningKeySecretStore previousProcess = new LocalSigningKeySecretStore();
+        SigningKeyServiceImpl previous = new SigningKeyServiceImpl(repository, previousProcess, 2048);
+        String orphanKid = previous.createActiveKey().kid();
+
+        LocalSigningKeySecretStore restartedProcess = new LocalSigningKeySecretStore();
+        SigningKeyServiceImpl restarted = new SigningKeyServiceImpl(repository, restartedProcess, 2048);
+        String liveKid = restarted.createActiveKey().kid();
+
+        JWKSet set = new JwksServiceImpl(repository, restartedProcess).jwks();
+        assertEquals(1, set.getKeys().size());
+        assertTrue(set.getKeyByKeyId(liveKid) != null);
+        assertTrue(set.getKeyByKeyId(orphanKid) == null);
+    }
 }
