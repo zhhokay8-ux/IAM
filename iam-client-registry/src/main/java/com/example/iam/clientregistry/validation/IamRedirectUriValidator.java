@@ -44,7 +44,7 @@ public class IamRedirectUriValidator {
         if (!ALLOWED_SCHEMES.contains(scheme)) {
             throw new IamException(IamErrorCode.INVALID_REDIRECT_URI, "redirect_uri scheme is not allowed");
         }
-        if ("http".equals(scheme) && !isLoopback(uri.getHost())) {
+        if ("http".equals(scheme) && !isHttpHostAllowed(uri.getHost())) {
             throw new IamException(IamErrorCode.INVALID_REDIRECT_URI, "http redirect_uri is only allowed for loopback");
         }
         if (uri.getRawUserInfo() != null || redirectUri.contains("@")) {
@@ -61,6 +61,48 @@ public class IamRedirectUriValidator {
 
     private static boolean isLoopback(String host) {
         String value = host.toLowerCase(Locale.ROOT);
+        if (value.startsWith("[") && value.endsWith("]")) {
+            value = value.substring(1, value.length() - 1);
+        }
         return "localhost".equals(value) || "127.0.0.1".equals(value) || "::1".equals(value);
+    }
+
+    /**
+     * http 仅允许本机回环，以及内网字面量 IP（RFC1918 / 链路本地），避免公网 http 回调。
+     * 不解析主机名，避免 DNS 旁路。
+     */
+    private static boolean isHttpHostAllowed(String host) {
+        if (isLoopback(host)) {
+            return true;
+        }
+        return isPrivateIpv4Literal(host);
+    }
+
+    private static boolean isPrivateIpv4Literal(String host) {
+        String[] parts = host.split("\\.");
+        if (parts.length != 4) {
+            return false;
+        }
+        int[] oct = new int[4];
+        for (int i = 0; i < 4; i++) {
+            try {
+                oct[i] = Integer.parseInt(parts[i]);
+            } catch (NumberFormatException ex) {
+                return false;
+            }
+            if (oct[i] < 0 || oct[i] > 255) {
+                return false;
+            }
+        }
+        if (oct[0] == 10) {
+            return true;
+        }
+        if (oct[0] == 192 && oct[1] == 168) {
+            return true;
+        }
+        if (oct[0] == 172 && oct[1] >= 16 && oct[1] <= 31) {
+            return true;
+        }
+        return oct[0] == 169 && oct[1] == 254;
     }
 }

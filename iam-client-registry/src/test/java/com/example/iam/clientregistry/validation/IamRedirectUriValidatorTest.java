@@ -66,4 +66,25 @@ class IamRedirectUriValidatorTest {
                 () -> validator.validateSyntax("https://portal.example.com/callback\r\n"));
         assertEquals(IamErrorCode.INVALID_REDIRECT_URI, ex.getErrorCode());
     }
+
+    @Test
+    void allowsHttpLoopback() {
+        assertDoesNotThrow(() -> validator.validateSyntax("http://localhost:8085/api/admin/iam/callback"));
+    }
+
+    @Test
+    void allowsHttpRfc1918Literal() {
+        assertDoesNotThrow(
+                () -> validator.validateSyntax("http://172.16.6.145:8085/api/admin/iam/callback"));
+        assertDoesNotThrow(() -> validator.validateSyntax("http://10.1.2.3/callback"));
+        assertDoesNotThrow(() -> validator.validateSyntax("http://192.168.0.10:5173/api/admin/iam/callback"));
+    }
+
+    @Test
+    void rejectsHttpPublicHost() {
+        IamException ex = assertThrows(
+                IamException.class,
+                () -> validator.validateSyntax("http://example.com/callback"));
+        assertEquals(IamErrorCode.INVALID_REDIRECT_URI, ex.getErrorCode());
+    }
 }
